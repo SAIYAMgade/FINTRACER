@@ -136,3 +136,14 @@ def test_frontend_root_and_spa_routes(client):
 
     spa_res = client.get("/overview")
     assert spa_res.status_code == 200
+
+def test_head_requests_for_uptimerobot(client):
+    # Verify that UptimeRobot probes using HEAD requests receive 200 OK
+    h_health = client.head("/health")
+    assert h_health.status_code == 200
+
+    h_narratives = client.head("/narratives")
+    assert h_narratives.status_code == 200
+
+    h_root = client.head("/")
+    assert h_root.status_code == 200

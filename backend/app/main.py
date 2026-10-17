@@ -87,6 +87,29 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import Response
+
+class HeadMethodMiddleware(BaseHTTPMiddleware):
+    """
+    RFC 7231 / RFC 9110 compliant HEAD request handler.
+    Allows monitoring probes (UptimeRobot, Pingdom) that use HEAD requests
+    to receive 200 OK without 405 Method Not Allowed errors.
+    """
+    async def dispatch(self, request: Request, call_next):
+        if request.method == "HEAD":
+            request.scope["method"] = "GET"
+            response = await call_next(request)
+            return Response(
+                content=b"",
+                status_code=response.status_code,
+                headers=dict(response.headers),
+                media_type=response.media_type,
+            )
+        return await call_next(request)
+
+app.add_middleware(HeadMethodMiddleware)
+
 # Register API Routers
 app.include_router(health.router)  # Direct /health, /ready, /metadata for monitoring
 app.include_router(health.router, prefix=settings.API_PREFIX)
