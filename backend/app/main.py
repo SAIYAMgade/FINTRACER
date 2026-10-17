@@ -107,19 +107,29 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 # Static files and SPA serving for single-service production deployments (e.g. Render)
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, HTMLResponse
 
 frontend_candidates = [
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "static")),
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "backend", "static")),
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "dist")),
+    os.path.join("backend", "static"),
     os.path.join("frontend", "dist"),
     os.path.join("..", "frontend", "dist"),
-    os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "dist")),
 ]
-frontend_dist = next((p for p in frontend_candidates if os.path.exists(p)), None)
+frontend_dist = next(
+    (p for p in frontend_candidates if os.path.exists(os.path.join(p, "index.html"))),
+    None
+)
 
 if frontend_dist:
     assets_dir = os.path.join(frontend_dist, "assets")
     if os.path.exists(assets_dir):
         app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
+
+    @app.get("/")
+    async def serve_root():
+        return FileResponse(os.path.join(frontend_dist, "index.html"))
 
     @app.get("/{full_path:path}")
     async def serve_spa(full_path: str):
@@ -129,6 +139,12 @@ if frontend_dist:
         if os.path.isfile(file_path):
             return FileResponse(file_path)
         return FileResponse(os.path.join(frontend_dist, "index.html"))
+else:
+    @app.get("/")
+    async def fallback_root():
+        return HTMLResponse(
+            "<h1>FINTRACER Backend Active</h1><p>Visit <a href='/docs'>/docs</a> for API specifications.</p>"
+        )
 
 if __name__ == "__main__":
     import uvicorn

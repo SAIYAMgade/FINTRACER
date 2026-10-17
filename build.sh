@@ -12,6 +12,8 @@ cd frontend
 npm install
 npm run build
 cd ..
+mkdir -p backend/static
+cp -r frontend/dist/* backend/static/ 2>/dev/null || true
 
 echo "3. Executing database migrations..."
 python -m alembic upgrade head || true

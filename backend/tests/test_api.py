@@ -129,3 +129,10 @@ def test_investigation_and_report_lifecycle(client):
     export_res = client.get(f"/api/reports/{rep_id}/export")
     assert export_res.status_code == 200
     assert "Executive Summary" in export_res.text
+
+def test_frontend_root_and_spa_routes(client):
+    root_res = client.get("/")
+    assert root_res.status_code == 200
+
+    spa_res = client.get("/overview")
+    assert spa_res.status_code == 200
