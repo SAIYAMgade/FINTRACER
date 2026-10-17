@@ -20,7 +20,7 @@ def ready(db: Session = Depends(get_db)):
     return {
         "status": "ready" if db_status == "connected" else "degraded",
         "database": db_status,
-        "database_url_type": "PostgreSQL" if "postgres" in settings.DATABASE_URL else "SQLite"
+        "database_url_type": "PostgreSQL" if db.bind and "postgres" in str(db.bind.url) else "SQLite"
     }
 
 @router.get("/metadata")

@@ -78,9 +78,18 @@ class AnalyticsService:
         product: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
         """Returns complaint volume aggregated by month."""
-        # Using string formatting for year-month across Postgres and SQLite
+        is_sqlite = (
+            db.bind.dialect.name == "sqlite"
+            if db.bind is not None
+            else False
+        )
+        month_expr = (
+            func.strftime('%Y-%m', Complaint.date_received)
+            if is_sqlite
+            else func.to_char(Complaint.date_received, 'YYYY-MM')
+        )
         query = db.query(
-            func.to_char(Complaint.date_received, 'YYYY-MM').label("month"),
+            month_expr.label("month"),
             func.count(Complaint.id).label("count")
         )
         if start_date:

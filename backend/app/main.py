@@ -22,7 +22,18 @@ import app.models  # ensure models are loaded
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Ensure tables are created
-    Base.metadata.create_all(bind=engine)
+    global engine, SessionLocal
+    try:
+        Base.metadata.create_all(bind=engine)
+    except Exception as e:
+        print(f"Notice: Primary engine error during create_all ({e}). Switching to local SQLite...")
+        from sqlalchemy import create_engine
+        from app.db import session as sess_module
+        fallback_engine = create_engine("sqlite:///./fintracer.db", connect_args={"check_same_thread": False})
+        sess_module.engine = fallback_engine
+        sess_module.SessionLocal.configure(bind=fallback_engine)
+        engine = fallback_engine
+        Base.metadata.create_all(bind=fallback_engine)
     
     # Auto-seed sample dataset if database is empty so application is immediately usable!
     db = SessionLocal()
