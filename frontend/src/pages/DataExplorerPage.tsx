@@ -89,7 +89,7 @@ export const DataExplorerPage: React.FC = () => {
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `resolvex_complaints_export_p${page}.csv`;
+    a.download = `fintracer_complaints_export_p${page}.csv`;
     a.click();
     window.URL.revokeObjectURL(url);
   };

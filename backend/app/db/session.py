@@ -18,7 +18,7 @@ try:
     )
 except Exception as e:
     logger.warning(f"Failed to create primary engine ({e}), falling back to SQLite in-memory/file.")
-    engine = create_engine("sqlite:///./resolvex.db", connect_args={"check_same_thread": False})
+    engine = create_engine("sqlite:///./fintracer.db", connect_args={"check_same_thread": False})
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()

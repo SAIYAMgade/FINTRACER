@@ -32,13 +32,23 @@ async def lifespan(app: FastAPI):
         from app.services.nlp_service import NLPService
         
         count = db.query(Complaint).count()
-        sample_complaints_path = os.path.join("data", "sample", "sample_complaints.csv")
-        sample_narratives_path = os.path.join("data", "sample", "sample_narratives.csv")
+        sample_complaints_candidates = [
+            os.path.join("data", "sample", "sample_complaints.csv"),
+            os.path.join("..", "data", "sample", "sample_complaints.csv"),
+            os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "data", "sample", "sample_complaints.csv")),
+        ]
+        sample_narratives_candidates = [
+            os.path.join("data", "sample", "sample_narratives.csv"),
+            os.path.join("..", "data", "sample", "sample_narratives.csv"),
+            os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "data", "sample", "sample_narratives.csv")),
+        ]
+        sample_complaints_path = next((p for p in sample_complaints_candidates if os.path.exists(p)), None)
+        sample_narratives_path = next((p for p in sample_narratives_candidates if os.path.exists(p)), None)
         
-        if count == 0 and os.path.exists(sample_complaints_path):
-            print("Auto-seeding CFPB sample dataset into PostgreSQL...")
+        if count == 0 and sample_complaints_path:
+            print("Auto-seeding CFPB sample dataset into database...")
             IngestionService.ingest_complaints(db, sample_complaints_path)
-            if os.path.exists(sample_narratives_path):
+            if sample_narratives_path:
                 IngestionService.ingest_narratives(db, sample_narratives_path)
             NLPService.run_theme_extraction(db, n_clusters=5)
             print("Auto-seeding and theme extraction completed!")
@@ -83,6 +93,31 @@ async def global_exception_handler(request: Request, exc: Exception):
         status_code=500,
         content={"detail": f"Internal server error: {str(exc)}"},
     )
+
+# Static files and SPA serving for single-service production deployments (e.g. Render)
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+
+frontend_candidates = [
+    os.path.join("frontend", "dist"),
+    os.path.join("..", "frontend", "dist"),
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "dist")),
+]
+frontend_dist = next((p for p in frontend_candidates if os.path.exists(p)), None)
+
+if frontend_dist:
+    assets_dir = os.path.join(frontend_dist, "assets")
+    if os.path.exists(assets_dir):
+        app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
+
+    @app.get("/{full_path:path}")
+    async def serve_spa(full_path: str):
+        if full_path.startswith("api") or full_path.startswith("docs") or full_path.startswith("redoc") or full_path.startswith("openapi.json"):
+            return JSONResponse(status_code=404, content={"detail": "Not found"})
+        file_path = os.path.join(frontend_dist, full_path)
+        if os.path.isfile(file_path):
+            return FileResponse(file_path)
+        return FileResponse(os.path.join(frontend_dist, "index.html"))
 
 if __name__ == "__main__":
     import uvicorn

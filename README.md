@@ -1,4 +1,4 @@
-# RESOLVEX
+# FINTRACER
 
 > **From operational signals to business decisions.**
 
@@ -10,7 +10,7 @@
 [![Vite](https://img.shields.io/badge/Vite-8.3-646CFF.svg?logo=vite)](https://vitejs.dev)
 [![Apache ECharts](https://img.shields.io/badge/Apache_ECharts-5.6-AA344D.svg?logo=apacheecharts)](https://echarts.apache.org)
 
-RESOLVEX is a full-stack financial-services investigation and analytics platform built on the **US Consumer Financial Protection Bureau (CFPB) Consumer Complaint Database** and its historical narrative archive.
+FINTRACER is a full-stack financial-services investigation and analytics platform built on the **US Consumer Financial Protection Bureau (CFPB) Consumer Complaint Database** and its historical narrative archive.
 
 It demonstrates the practical engineering, statistical rigor, and business communication abilities expected of a Senior Data Analyst / Analytics Engineer: relational data modeling, reproducible ETL pipelines, structured statistical contribution analysis, unsupervised NLP narrative clustering, controlled read-only SQL workspaces, and executive evidence-backed reporting.
 
@@ -124,7 +124,37 @@ CREATE DATABASE resolvex;
 
 ---
 
-## 4. Running Automated Tests
+## 4. Deploying to Render
+
+FINTRACER is production-ready for deployment on [Render](https://render.com). It comes pre-configured with a Render Blueprint (`render.yaml`), build pipeline script (`build.sh`), and unified single-service full-stack web serving.
+
+### Option A: 1-Click Blueprint Deploy (Recommended)
+
+1. Push your repository to GitHub (`https://github.com/SAIYAMgade/FINTRACER.git`).
+2. In the Render Dashboard, click **New +** -> **Blueprint**.
+3. Connect your `FINTRACER` repository.
+4. Render will read `render.yaml` and automatically provision:
+   - **PostgreSQL Database** (`fintracer-db`)
+   - **Web Service** (`fintracer`) running the unified backend + compiled React frontend on a single URL.
+5. Click **Apply**. The platform will build and auto-seed the CFPB database on first startup.
+
+### Option B: Manual Web Service Setup on Render
+
+1. In Render, click **New +** -> **Web Service**.
+2. Select your `FINTRACER` GitHub repository.
+3. Configure the following parameters:
+   - **Environment**: `Python`
+   - **Build Command**: `bash build.sh`
+   - **Start Command**: `python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT --app-dir backend`
+4. In **Environment Variables**, add:
+   - `PYTHON_VERSION`: `3.11.9`
+   - `APP_NAME`: `FINTRACER`
+   - `DATABASE_URL`: Your PostgreSQL connection string (Render auto-formats `postgres://` to `postgresql+psycopg2://` on the fly).
+5. Click **Deploy Web Service**.
+
+---
+
+## 5. Running Automated Tests
 
 Run the full suite of unit, analytical, and API integration tests:
 
@@ -140,7 +170,7 @@ Test coverage includes:
 
 ---
 
-## 5. Documentation Directory
+## 6. Documentation Directory
 
 Detailed specifications are maintained under [`docs/`](./docs/):
 - [`docs/architecture.md`](./docs/architecture.md) - System architecture and component interactions.
@@ -153,7 +183,7 @@ Detailed specifications are maintained under [`docs/`](./docs/):
 
 ---
 
-## 6. Definition of Success Checklist
+## 7. Definition of Success Checklist
 
 - [x] Ingest real or documented sample CFPB dataset with duplicate handling and reconciliation.
 - [x] Query, filter, and search structured complaint records with server-side pagination.

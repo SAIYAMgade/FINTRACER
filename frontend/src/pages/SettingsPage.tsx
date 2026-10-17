@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { api } from '../api/client';
+import { api, API_BASE } from '../api/client';
 import {
   Settings,
   Upload,
@@ -41,7 +41,7 @@ export const SettingsPage: React.FC = () => {
     formData.append('file', selectedFile);
 
     try {
-      const res = await fetch(`/api/ingestion/upload?file_type=${fileType}`, {
+      const res = await fetch(`${API_BASE}/ingestion/upload?file_type=${fileType}`, {
         method: 'POST',
         body: formData,
       });

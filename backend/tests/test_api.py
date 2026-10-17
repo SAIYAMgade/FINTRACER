@@ -18,7 +18,7 @@ def test_health_and_metadata(client):
 
     r3 = client.get("/api/metadata")
     assert r3.status_code == 200
-    assert "RESOLVEX" in r3.json()["app_name"]
+    assert "FINTRACER" in r3.json()["app_name"]
 
 def test_overview_endpoints(client):
     res = client.get("/api/overview/summary")

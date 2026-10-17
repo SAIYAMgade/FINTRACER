@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: fintracer
+    env: python
+    buildCommand: "bash build.sh"
+    startCommand: "python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT --app-dir backend"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: DATABASE_URL
+        fromDatabase:
+          name: fintracer-db
+          property: connectionString
+      - key: APP_NAME
+        value: FINTRACER
+
+databases:
+  - name: fintracer-db
+    databaseName: fintracer
+    user: fintracer_user
+    plan: free

@@ -15,7 +15,7 @@ export const LandingPage: React.FC = () => {
       {/* Navigation */}
       <header className="h-16 border-b border-[#262626] px-8 flex items-center justify-between max-w-7xl mx-auto w-full bg-black">
         <div className="flex items-center space-x-3">
-          <span className="text-xl font-black tracking-wider text-white">RESOLVEX</span>
+          <span className="text-xl font-black tracking-wider text-white">FINTRACER</span>
           <span className="text-xs bg-[#1E3A8A] text-[#93C5FD] font-semibold px-2 py-0.5 rounded">
             v1.0
           </span>
@@ -59,7 +59,7 @@ export const LandingPage: React.FC = () => {
         </h1>
 
         <p className="text-base sm:text-lg text-[#9CA3AF] max-w-3xl mx-auto mb-10 leading-relaxed">
-          RESOLVEX unifies relational data modeling, statistical contribution analysis, and unsupervised
+          FINTRACER unifies relational data modeling, statistical contribution analysis, and unsupervised
           natural language processing to investigate consumer financial protection complaints end-to-end.
         </p>
 
@@ -134,7 +134,7 @@ export const LandingPage: React.FC = () => {
       {/* Footer */}
       <footer className="border-t border-[#262626] py-6 px-8 text-center text-xs text-[#6B7280] bg-black">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <span>RESOLVEX Financial Services Analytics & Investigation Platform</span>
+          <span>FINTRACER Financial Services Analytics & Investigation Platform</span>
           <div className="flex items-center space-x-4">
             <NavLink to="/overview" className="hover:text-[#9CA3AF]">Dashboard</NavLink>
             <NavLink to="/quality" className="hover:text-[#9CA3AF]">Data Quality</NavLink>

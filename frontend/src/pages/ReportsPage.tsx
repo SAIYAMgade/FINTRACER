@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { api } from '../api/client';
+import { api, API_BASE } from '../api/client';
 import {
   FileSpreadsheet,
   Download,
@@ -34,13 +34,13 @@ export const ReportsPage: React.FC = () => {
   const handleDownloadMarkdown = async () => {
     if (!selectedReportId) return;
     try {
-      const res = await fetch(`/api/reports/${selectedReportId}/export`);
+      const res = await fetch(`${API_BASE}/reports/${selectedReportId}/export`);
       const mdText = await res.text();
       const blob = new Blob([mdText], { type: 'text/markdown' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `resolvex_report_${selectedReportId}.md`;
+      a.download = `fintracer_report_${selectedReportId}.md`;
       a.click();
       window.URL.revokeObjectURL(url);
     } catch (e: any) {

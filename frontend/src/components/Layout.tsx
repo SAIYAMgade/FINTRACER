@@ -39,7 +39,7 @@ export const Layout: React.FC = () => {
         <div className="p-5 border-b border-[#262626]">
           <NavLink to="/" className="block group">
             <div className="flex items-center space-x-2">
-              <span className="text-xl font-black tracking-wider text-white">RESOLVEX</span>
+              <span className="text-xl font-black tracking-wider text-white">FINTRACER</span>
               <span className="text-[10px] bg-[#1E3A8A] text-[#93C5FD] font-semibold px-1.5 py-0.5 rounded tracking-wide">
                 v1.0
               </span>

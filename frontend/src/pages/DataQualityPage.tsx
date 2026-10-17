@@ -27,7 +27,7 @@ export const DataQualityPage: React.FC = () => {
   const handleExportDQReport = () => {
     if (!dqData) return;
     const reportText = [
-      '# RESOLVEX Data Quality & Ingestion Audit Report',
+      '# FINTRACER Data Quality & Ingestion Audit Report',
       `Generated At: ${new Date().toISOString()}`,
       `Overall Health: ${dqData.dq_status.overall_health}`,
       '',
@@ -51,7 +51,7 @@ export const DataQualityPage: React.FC = () => {
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `resolvex_data_quality_report_${new Date().toISOString().split('T')[0]}.md`;
+    a.download = `fintracer_data_quality_report_${new Date().toISOString().split('T')[0]}.md`;
     a.click();
     window.URL.revokeObjectURL(url);
   };

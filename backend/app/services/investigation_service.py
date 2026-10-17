@@ -349,7 +349,7 @@ FROM complaints;"""
             executive_summary=executive_summary,
             result_snapshot_json=result,
             recommendations_json=recommendations,
-            methodology_notes="Analysis conducted in RESOLVEX using PostgreSQL relational aggregations and Scikit-Learn NLP text clustering.",
+            methodology_notes="Analysis conducted in FINTRACER using PostgreSQL relational aggregations and Scikit-Learn NLP text clustering.",
             limitations_notes="Observational consumer complaint data; does not establish market-wide customer incident rates or legal fault.",
         )
         db.add(report)
