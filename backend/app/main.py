@@ -88,6 +88,7 @@ app.add_middleware(
 )
 
 # Register API Routers
+app.include_router(health.router)  # Direct /health, /ready, /metadata for monitoring
 app.include_router(health.router, prefix=settings.API_PREFIX)
 app.include_router(overview.router, prefix=settings.API_PREFIX)
 app.include_router(complaints.router, prefix=settings.API_PREFIX)
@@ -133,7 +134,7 @@ if frontend_dist:
 
     @app.get("/{full_path:path}")
     async def serve_spa(full_path: str):
-        if full_path.startswith("api") or full_path.startswith("docs") or full_path.startswith("redoc") or full_path.startswith("openapi.json"):
+        if full_path.startswith("api") or full_path.startswith("health") or full_path.startswith("ready") or full_path.startswith("docs") or full_path.startswith("redoc") or full_path.startswith("openapi.json"):
             return JSONResponse(status_code=404, content={"detail": "Not found"})
         file_path = os.path.join(frontend_dist, full_path)
         if os.path.isfile(file_path):

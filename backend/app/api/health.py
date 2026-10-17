@@ -1,3 +1,5 @@
+import time
+import datetime
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from sqlalchemy import text
@@ -6,9 +8,17 @@ from app.core.config import settings
 
 router = APIRouter(tags=["Health & Metadata"])
 
+SERVER_START_TIME = time.time()
+
 @router.get("/health")
 def health():
-    return {"status": "ok", "app": settings.APP_NAME, "version": settings.VERSION}
+    return {
+        "status": "ok",
+        "app": settings.APP_NAME,
+        "version": settings.VERSION,
+        "timestamp": datetime.datetime.utcnow().isoformat(),
+        "uptime_seconds": round(time.time() - SERVER_START_TIME, 2),
+    }
 
 @router.get("/ready")
 def ready(db: Session = Depends(get_db)):
