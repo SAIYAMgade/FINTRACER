@@ -18,6 +18,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { ErrorBoundary } from '../components/ErrorBoundary';
 
 const SAMPLE_QUESTIONS = [
   'What issues are consumers experiencing with credit reporting?',
@@ -71,8 +72,9 @@ export const InvestigationAssistantPage: React.FC = () => {
   const benchmark = benchmarkMutation.data;
 
   return (
-    <div className="space-y-6">
-      {/* Title & Navigation Tabs */}
+    <ErrorBoundary fallbackTitle="Investigation Assistant Error">
+      <div className="space-y-6">
+        {/* Title & Navigation Tabs */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-[#0D0D0D] border border-[#262626] p-5 rounded-lg">
         <div>
           <h2 className="text-base font-bold text-white flex items-center gap-2">
@@ -194,6 +196,21 @@ export const InvestigationAssistantPage: React.FC = () => {
             </div>
           </div>
 
+          {/* Error Banner */}
+          {askMutation.isError && (
+            <div className="bg-[#450A0A] border border-[#991B1B] p-4 rounded-lg flex items-start space-x-3 text-xs text-[#FCA5A5]">
+              <XCircle className="w-4 h-4 text-[#EF4444] shrink-0 mt-0.5" />
+              <div>
+                <span className="font-semibold block">Investigation Query Failed</span>
+                <p className="mt-0.5 text-[#F87171]">
+                  {askMutation.error instanceof Error
+                    ? askMutation.error.message
+                    : 'An unexpected error occurred while communicating with the assistant service.'}
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Assistant Response Card */}
           {response && (
             <div className="space-y-5">
@@ -220,7 +237,12 @@ export const InvestigationAssistantPage: React.FC = () => {
                   <span className="text-xs text-[#9CA3AF]">
                     Retrieved in{' '}
                     <span className="text-white font-mono">
-                      {Math.round(response.grounding_metadata.latency_seconds * 1000)} ms
+                      {Math.round(
+                        (response.grounding_metadata?.latency_seconds != null
+                          ? response.grounding_metadata.latency_seconds * 1000
+                          : response.duration_ms) || 0
+                      )}{' '}
+                      ms
                     </span>
                   </span>
                 </div>
@@ -228,7 +250,7 @@ export const InvestigationAssistantPage: React.FC = () => {
                 <div className="text-xs text-[#9CA3AF] flex items-center gap-3">
                   <span>
                     Citations:{' '}
-                    <span className="text-white font-bold">{response.citations.length}</span>
+                    <span className="text-white font-bold">{(response.citations || []).length}</span>
                   </span>
                   <span>
                     Hallucination Defense:{' '}
@@ -243,28 +265,38 @@ export const InvestigationAssistantPage: React.FC = () => {
                   <div className="bg-black border border-[#1F1F1F] p-3 rounded">
                     <span className="text-[11px] text-[#9CA3AF] block">Analyzed Product</span>
                     <span className="text-xs font-semibold text-white truncate block mt-0.5">
-                      {response.authoritative_sql_metrics.product}
+                      {response.authoritative_sql_metrics.product || 'All Products'}
                     </span>
                   </div>
 
                   <div className="bg-black border border-[#1F1F1F] p-3 rounded">
                     <span className="text-[11px] text-[#9CA3AF] block">Total Complaints</span>
                     <span className="text-lg font-bold font-mono text-white block mt-0.5">
-                      {response.authoritative_sql_metrics.total_complaints.toLocaleString()}
+                      {(response.authoritative_sql_metrics.total_complaints ?? 0).toLocaleString()}
                     </span>
                   </div>
 
                   <div className="bg-black border border-[#1F1F1F] p-3 rounded">
                     <span className="text-[11px] text-[#9CA3AF] block">Timely Response Rate</span>
                     <span className="text-lg font-bold font-mono text-[#34D399] block mt-0.5">
-                      {response.authoritative_sql_metrics.timely_response_rate_pct}%
+                      {response.authoritative_sql_metrics.timely_response_rate_pct ??
+                        response.authoritative_sql_metrics.timely_response_rate ??
+                        0}%
                     </span>
                   </div>
 
                   <div className="bg-black border border-[#1F1F1F] p-3 rounded">
                     <span className="text-[11px] text-[#9CA3AF] block">Top Reported Issue</span>
                     <span className="text-xs font-semibold text-[#60A5FA] truncate block mt-0.5">
-                      {response.authoritative_sql_metrics.top_issues[0]?.issue || 'N/A'}
+                      {(() => {
+                        const top = response.authoritative_sql_metrics?.top_issues?.[0];
+                        if (!top) return 'N/A';
+                        if (typeof top === 'string') return top;
+                        if (typeof top === 'object' && 'issue' in top) {
+                          return `${(top as any).issue} (${(top as any).count ?? 0} records)`;
+                        }
+                        return 'N/A';
+                      })()}
                     </span>
                   </div>
                 </div>
@@ -273,7 +305,7 @@ export const InvestigationAssistantPage: React.FC = () => {
               {/* Synthesized Answer Body */}
               <div className="bg-[#0D0D0D] border border-[#262626] p-6 rounded-lg text-sm text-[#F3F4F6] space-y-4 leading-relaxed font-sans">
                 <div className="whitespace-pre-wrap font-sans text-xs sm:text-sm">
-                  {response.answer_markdown}
+                  {response.answer_markdown || 'No analysis generated.'}
                 </div>
               </div>
 
@@ -305,7 +337,7 @@ export const InvestigationAssistantPage: React.FC = () => {
               )}
 
               {/* Verified Citations List */}
-              {response.citations.length > 0 && (
+              {Array.isArray(response.citations) && response.citations.length > 0 && (
                 <div className="space-y-3">
                   <h3 className="text-xs font-bold text-white flex items-center gap-2">
                     <FileCheck className="w-4 h-4 text-[#3B82F6]" />
@@ -313,48 +345,53 @@ export const InvestigationAssistantPage: React.FC = () => {
                   </h3>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {response.citations.map((c) => (
-                      <div
-                        key={c.reference_tag}
-                        className="bg-[#0D0D0D] border border-[#262626] p-4 rounded-lg space-y-2.5"
-                      >
-                        <div className="flex items-center justify-between">
-                          <span className="font-mono text-xs font-bold text-[#60A5FA] bg-[#172554] border border-[#1E40AF] px-2 py-0.5 rounded">
-                            {c.reference_tag}
-                          </span>
+                    {response.citations.map((c, idx) => {
+                      const compId = (c as any).complaint_source_id || (c as any).complaint_id || '';
+                      return (
+                        <div
+                          key={c.reference_tag || idx}
+                          className="bg-[#0D0D0D] border border-[#262626] p-4 rounded-lg space-y-2.5"
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="font-mono text-xs font-bold text-[#60A5FA] bg-[#172554] border border-[#1E40AF] px-2 py-0.5 rounded">
+                              {c.reference_tag || `[Complaint #${compId}]`}
+                            </span>
 
-                          <span className="text-[11px] font-mono text-[#9CA3AF]">
-                            Cosine: {c.similarity_score.toFixed(3)}
-                          </span>
-                        </div>
-
-                        <div className="text-[11px] text-[#9CA3AF] space-y-0.5">
-                          <div className="truncate">
-                            <span className="text-[#6B7280]">Product:</span> {c.product}
+                            <span className="text-[11px] font-mono text-[#9CA3AF]">
+                              Cosine: {c.similarity_score != null ? c.similarity_score.toFixed(3) : 'N/A'}
+                            </span>
                           </div>
-                          <div className="truncate">
-                            <span className="text-[#6B7280]">Issue:</span> {c.issue}
-                          </div>
-                          <div className="truncate">
-                            <span className="text-[#6B7280]">Company:</span> {c.company}
-                          </div>
-                        </div>
 
-                        <div className="bg-black border border-[#1F1F1F] p-2.5 rounded text-xs text-[#D1D5DB] italic leading-relaxed">
-                          &ldquo;{c.snippet}&rdquo;
-                        </div>
+                          <div className="text-[11px] text-[#9CA3AF] space-y-0.5">
+                            <div className="truncate">
+                              <span className="text-[#6B7280]">Product:</span> {c.product || 'N/A'}
+                            </div>
+                            <div className="truncate">
+                              <span className="text-[#6B7280]">Issue:</span> {c.issue || 'N/A'}
+                            </div>
+                            <div className="truncate">
+                              <span className="text-[#6B7280]">Company:</span> {c.company || 'N/A'}
+                            </div>
+                          </div>
 
-                        <div className="pt-1">
-                          <Link
-                            to={`/explorer?search=${c.complaint_source_id}`}
-                            className="flex items-center space-x-1 text-[11px] text-[#3B82F6] hover:text-[#60A5FA]"
-                          >
-                            <span>Open Complaint #{c.complaint_source_id} in Explorer</span>
-                            <ExternalLink className="w-3 h-3" />
-                          </Link>
+                          <div className="bg-black border border-[#1F1F1F] p-2.5 rounded text-xs text-[#D1D5DB] italic leading-relaxed">
+                            &ldquo;{c.snippet || ''}&rdquo;
+                          </div>
+
+                          {compId && (
+                            <div className="pt-1">
+                              <Link
+                                to={`/explorer?search=${encodeURIComponent(compId)}`}
+                                className="flex items-center space-x-1 text-[11px] text-[#3B82F6] hover:text-[#60A5FA]"
+                              >
+                                <span>Open Complaint #{compId} in Explorer</span>
+                                <ExternalLink className="w-3 h-3" />
+                              </Link>
+                            </div>
+                          )}
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -519,5 +556,6 @@ export const InvestigationAssistantPage: React.FC = () => {
         </div>
       )}
     </div>
-  );
+  </ErrorBoundary>
+);
 };

@@ -88,6 +88,7 @@ class RAGService:
 
         # 1. Security & Adversarial Defense
         if cls.detect_prompt_injection(clean_q):
+            duration_ms = round((time.time() - start_time) * 1000, 2)
             return {
                 "question": clean_q,
                 "status": "REFUSED_SECURITY",
@@ -100,7 +101,14 @@ class RAGService:
                 "executed_sql_query": None,
                 "citations": [],
                 "coverage_disclosure": "No data retrieved due to security policy.",
-                "duration_ms": round((time.time() - start_time) * 1000, 2),
+                "duration_ms": duration_ms,
+                "grounding_metadata": {
+                    "total_citations": 0,
+                    "hallucination_prevention_mode": "ADVERSARIAL_DEFENSE_BLOCKED",
+                    "retrieval_model": "fintracer-semantic-tfidf-384",
+                    "metrics_source": "Security Guardrail",
+                    "latency_seconds": round(duration_ms / 1000, 3),
+                },
             }
 
         # 2. Extract context and filters
@@ -167,6 +175,7 @@ class RAGService:
         )
 
         if len(candidates) == 0 or is_unsupported_topic:
+            duration_ms = round((time.time() - start_time) * 1000, 2)
             return {
                 "question": clean_q,
                 "status": "INSUFFICIENT_EVIDENCE",
@@ -181,14 +190,24 @@ class RAGService:
                     "> FINTRACER adheres to strict evidentiary grounding and does not extrapolate or generate speculative findings when source records are unavailable."
                 ),
                 "authoritative_sql_metrics": {
+                    "product": detected_product or "All Products",
                     "total_complaints": total_complaints,
                     "timely_response_rate": timely_rate,
+                    "timely_response_rate_pct": timely_rate,
                     "narrative_coverage_pct": narrative_coverage,
+                    "top_issues": [],
                 },
                 "executed_sql_query": sql_query_str,
                 "citations": [],
                 "coverage_disclosure": f"Narrative coverage across evaluated scope is {narrative_coverage}%.",
-                "duration_ms": round((time.time() - start_time) * 1000, 2),
+                "duration_ms": duration_ms,
+                "grounding_metadata": {
+                    "total_citations": 0,
+                    "hallucination_prevention_mode": "STRICT_EVIDENTIARY_GROUNDING",
+                    "retrieval_model": "fintracer-semantic-tfidf-384",
+                    "metrics_source": "PostgreSQL / SQLite Authoritative SQL",
+                    "latency_seconds": round(duration_ms / 1000, 3),
+                },
             }
 
         # 6. Build Citations List
@@ -202,6 +221,7 @@ class RAGService:
                 "citation_index": i + 1,
                 "reference_tag": ref_tag,
                 "complaint_id": c_id,
+                "complaint_source_id": c_id,
                 "company": c["company"],
                 "product": c["product"],
                 "issue": c["issue"],
@@ -247,13 +267,16 @@ class RAGService:
             "- Review billing ledger reconciliation and automated dispute workflows in the **Data Quality Center**.",
         ])
 
+        duration_ms = round((time.time() - start_time) * 1000, 2)
         return {
             "question": clean_q,
             "status": "GROUNDED_ANSWER",
             "answer_markdown": "\n".join(answer_lines),
             "authoritative_sql_metrics": {
+                "product": detected_product or "All Products",
                 "total_complaints": total_complaints,
                 "timely_response_rate": timely_rate,
+                "timely_response_rate_pct": timely_rate,
                 "narrative_coverage_pct": narrative_coverage,
                 "top_issues": top_issues_list,
             },
@@ -263,7 +286,14 @@ class RAGService:
                 f"Evaluated {total_complaints:,} complaints with {narrative_coverage}% narrative availability. "
                 "Observational complaint patterns do not establish legal liability or total industry defect rates."
             ),
-            "duration_ms": round((time.time() - start_time) * 1000, 2),
+            "duration_ms": duration_ms,
+            "grounding_metadata": {
+                "total_citations": len(citations),
+                "hallucination_prevention_mode": "STRICT_EVIDENTIARY_GROUNDING",
+                "retrieval_model": "fintracer-semantic-tfidf-384",
+                "metrics_source": "PostgreSQL / SQLite Authoritative SQL",
+                "latency_seconds": round(duration_ms / 1000, 3),
+            },
         }
 
     @classmethod

@@ -169,29 +169,33 @@ export const api = {
       question: string;
       status: 'GROUNDED_ANSWER' | 'INSUFFICIENT_EVIDENCE' | 'REFUSED_SECURITY' | 'EMPTY_QUERY';
       answer_markdown: string;
+      duration_ms?: number;
       authoritative_sql_metrics?: {
-        product: string;
-        total_complaints: number;
-        timely_response_rate_pct: number;
-        top_issues: Array<{ issue: string; count: number }>;
-        top_companies: Array<{ company: string; count: number }>;
+        product?: string;
+        total_complaints?: number;
+        timely_response_rate?: number;
+        timely_response_rate_pct?: number;
+        narrative_coverage_pct?: number;
+        top_issues?: any[];
+        top_companies?: any[];
       };
       executed_sql_query?: string;
       citations: Array<{
-        reference_tag: string;
-        complaint_source_id: string;
-        product: string;
-        issue: string;
-        company: string;
-        similarity_score: number;
-        snippet: string;
+        reference_tag?: string;
+        complaint_id?: string;
+        complaint_source_id?: string;
+        product?: string;
+        issue?: string;
+        company?: string;
+        similarity_score?: number;
+        snippet?: string;
       }>;
-      grounding_metadata: {
-        total_citations: number;
-        hallucination_prevention_mode: string;
-        retrieval_model: string;
-        metrics_source: string;
-        latency_seconds: number;
+      grounding_metadata?: {
+        total_citations?: number;
+        hallucination_prevention_mode?: string;
+        retrieval_model?: string;
+        metrics_source?: string;
+        latency_seconds?: number;
       };
     }>('/assistant/ask', {
       method: 'POST',
