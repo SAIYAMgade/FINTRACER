@@ -13,6 +13,7 @@ class SemanticSearchRequest(BaseModel):
     query: str = Field(..., min_length=2, max_length=500, description="Investigation search intent or phrase")
     top_k: int = Field(10, ge=1, le=50)
     min_score: float = Field(0.05, ge=0.0, le=1.0)
+    min_similarity: Optional[float] = None
     product: Optional[str] = None
     issue: Optional[str] = None
     company: Optional[str] = None
@@ -24,11 +25,12 @@ def search_narratives(req: SemanticSearchRequest, db: Session = Depends(get_db))
     Performs semantic vector search across consumer financial complaint narratives
     with cosine similarity ranking and metadata pre-filtering.
     """
+    effective_min = req.min_similarity if req.min_similarity is not None else req.min_score
     return SemanticSearchService.search(
         db=db,
         query=req.query,
         top_k=req.top_k,
-        min_score=req.min_score,
+        min_score=effective_min,
         product=req.product,
         issue=req.issue,
         company=req.company,

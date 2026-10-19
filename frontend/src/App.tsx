@@ -12,6 +12,7 @@ import { ReportsPage } from './pages/ReportsPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { SemanticSearchPage } from './pages/SemanticSearchPage';
 import { InvestigationAssistantPage } from './pages/InvestigationAssistantPage';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -25,8 +26,9 @@ const queryClient = new QueryClient({
 
 export function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
+    <ErrorBoundary fallbackTitle="Application Error">
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
         <Routes>
           {/* Landing Page */}
           <Route path="/" element={<LandingPage />} />
@@ -50,7 +52,8 @@ export function App() {
         </Routes>
       </BrowserRouter>
     </QueryClientProvider>
-  );
+  </ErrorBoundary>
+);
 }
 
 export default App;

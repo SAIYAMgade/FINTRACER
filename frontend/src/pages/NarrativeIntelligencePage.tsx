@@ -96,7 +96,7 @@ export const NarrativeIntelligencePage: React.FC = () => {
         <div className="space-y-1">
           <span className="text-[#93C5FD] font-semibold block">NLP Analytical Methodology</span>
           <p className="text-[#9CA3AF] leading-relaxed">
-            {nlpData?.methodology.algorithm}. Stopwords filtered while retaining key financial terminology
+            {nlpData?.methodology?.algorithm || 'TF-IDF Vector Space Analysis'}. Stopwords filtered while retaining key financial terminology
             and negative polarities (&quot;not&quot;, &quot;no&quot;, &quot;never&quot;, &quot;without&quot;). Note: Text-derived themes are observational
             associations and do not assert verified customer causation.
           </p>

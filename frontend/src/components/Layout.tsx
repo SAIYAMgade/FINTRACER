@@ -14,6 +14,7 @@ import {
   Search,
   Sparkles,
 } from 'lucide-react';
+import { ErrorBoundary } from './ErrorBoundary';
 
 const NAV_ITEMS = [
   { name: 'Overview', path: '/overview', icon: LayoutDashboard },
@@ -118,7 +119,9 @@ export const Layout: React.FC = () => {
 
         {/* Page Container */}
         <main className="flex-1 overflow-y-auto p-6 bg-black">
-          <Outlet />
+          <ErrorBoundary fallbackTitle="Page Display Error">
+            <Outlet />
+          </ErrorBoundary>
         </main>
       </div>
     </div>

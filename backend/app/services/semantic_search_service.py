@@ -202,11 +202,14 @@ class SemanticSearchService:
             results.append({
                 "embedding_id": row[0],
                 "narrative_id": row[1],
+                "complaint_narrative_id": row[1],
                 "complaint_id": row[2],
+                "complaint_source_id": row[2],
                 "similarity_score": round(score, 4),
                 "relevance_pct": round(score * 100, 1),
                 "snippet": snippet,
                 "narrative_text": raw_text,
+                "full_narrative": raw_text,
                 "product": row[5] or "Unspecified Product",
                 "issue": row[6] or "Unspecified Issue",
                 "sub_issue": row[7],
@@ -216,16 +219,27 @@ class SemanticSearchService:
                 "timely_response": row[11],
                 "consumer_disputed": row[12],
                 "theme_label": row[13] or "General Investigation",
+                "theme_name": row[13] or "General Investigation",
             })
 
             if len(results) >= top_k:
                 break
 
+        duration_s = round(time.time() - start_time, 3)
         return {
             "query": query,
             "total_evaluated": len(candidates),
             "results_count": len(results),
-            "search_duration_ms": round((time.time() - start_time) * 1000, 2),
+            "count": len(results),
+            "top_k": top_k,
+            "search_duration_ms": round(duration_s * 1000, 2),
+            "duration_seconds": duration_s,
+            "filters_applied": {
+                "product": product,
+                "issue": issue,
+                "company": company,
+                "min_score": min_score,
+            },
             "results": results,
         }
 

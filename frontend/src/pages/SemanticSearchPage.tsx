@@ -13,8 +13,10 @@ import {
   Tag,
   Building2,
   AlertCircle,
+  XCircle,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { ErrorBoundary } from '../components/ErrorBoundary';
 
 const SAMPLE_QUERIES = [
   'Unexpected overdraft & late fees',
@@ -83,9 +85,10 @@ export const SemanticSearchPage: React.FC = () => {
   const results = searchMutation.data?.results || [];
 
   return (
-    <div className="space-y-6">
-      {/* Title & Status */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-[#0D0D0D] border border-[#262626] p-5 rounded-lg">
+    <ErrorBoundary fallbackTitle="Semantic Vector Search Error">
+      <div className="space-y-6">
+        {/* Title & Status */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-[#0D0D0D] border border-[#262626] p-5 rounded-lg">
         <div>
           <h2 className="text-base font-bold text-white flex items-center gap-2">
             <Search className="w-5 h-5 text-[#3B82F6]" />
@@ -224,6 +227,21 @@ export const SemanticSearchPage: React.FC = () => {
         </div>
       </div>
 
+      {/* Error Banner */}
+      {searchMutation.isError && (
+        <div className="bg-[#450A0A] border border-[#991B1B] p-4 rounded-lg flex items-start space-x-3 text-xs text-[#FCA5A5]">
+          <XCircle className="w-4 h-4 text-[#EF4444] shrink-0 mt-0.5" />
+          <div>
+            <span className="font-semibold block">Semantic Search Query Failed</span>
+            <p className="mt-0.5 text-[#F87171]">
+              {searchMutation.error instanceof Error
+                ? searchMutation.error.message
+                : 'An unexpected error occurred while communicating with the vector search service.'}
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Results Header / Summary */}
       {searchMutation.data && (
         <div className="flex items-center justify-between text-xs text-[#9CA3AF] px-1">
@@ -234,7 +252,12 @@ export const SemanticSearchPage: React.FC = () => {
           <div>
             Retrieval latency:{' '}
             <span className="text-white font-mono">
-              {Math.round(searchMutation.data.duration_seconds * 1000)} ms
+              {Math.round(
+                (searchMutation.data.duration_seconds != null
+                  ? searchMutation.data.duration_seconds * 1000
+                  : (searchMutation.data as any).search_duration_ms) || 0
+              )}{' '}
+              ms
             </span>
           </div>
         </div>
@@ -242,13 +265,18 @@ export const SemanticSearchPage: React.FC = () => {
 
       {/* Results List */}
       <div className="space-y-3">
-        {results.map((item) => {
-          const isExpanded = expandedId === item.complaint_narrative_id;
-          const scorePct = Math.round(item.similarity_score * 100);
+        {results.map((item, idx) => {
+          const compId = (item as any).complaint_source_id || (item as any).complaint_id || '';
+          const narrativeId = (item as any).complaint_narrative_id || (item as any).narrative_id || idx;
+          const fullText = (item as any).full_narrative || (item as any).narrative_text || '';
+          const themeLabel = (item as any).theme_name || (item as any).theme_label || '';
+          const isExpanded = expandedId === narrativeId;
+          const score = item.similarity_score != null ? item.similarity_score : 0;
+          const scorePct = Math.round(score * 100);
 
           return (
             <div
-              key={item.complaint_narrative_id}
+              key={narrativeId}
               className="bg-[#0D0D0D] border border-[#262626] hover:border-[#383838] p-4 rounded-lg transition-all space-y-3"
             >
               {/* Header row */}
@@ -256,62 +284,65 @@ export const SemanticSearchPage: React.FC = () => {
                 <div className="flex items-center space-x-2">
                   <span
                     className={`text-[11px] font-bold px-2 py-0.5 rounded font-mono ${
-                      item.similarity_score >= 0.3
+                      score >= 0.3
                         ? 'bg-[#1E3A8A] text-[#93C5FD]'
-                        : item.similarity_score >= 0.15
+                        : score >= 0.15
                         ? 'bg-[#1F2937] text-[#60A5FA]'
                         : 'bg-[#18181B] text-[#9CA3AF]'
                     }`}
                   >
-                    Cosine: {item.similarity_score.toFixed(3)} ({scorePct}% match)
+                    Cosine: {score.toFixed(3)} ({scorePct}% match)
                   </span>
 
                   <span className="text-xs font-semibold text-white">
-                    Complaint #{item.complaint_source_id}
+                    Complaint #{compId || 'N/A'}
                   </span>
                 </div>
 
-                <Link
-                  to={`/explorer?search=${item.complaint_source_id}`}
-                  className="flex items-center space-x-1 text-xs text-[#3B82F6] hover:text-[#60A5FA]"
-                >
-                  <span>View Structured Details</span>
-                  <ExternalLink className="w-3 h-3" />
-                </Link>
+                {compId && (
+                  <Link
+                    to={`/explorer?search=${encodeURIComponent(compId)}`}
+                    className="flex items-center space-x-1 text-xs text-[#3B82F6] hover:text-[#60A5FA]"
+                  >
+                    <span>View Structured Details</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </Link>
+                )}
               </div>
 
               {/* Tags row */}
               <div className="flex flex-wrap items-center gap-2 text-[11px]">
                 <span className="flex items-center gap-1 bg-[#141414] border border-[#262626] text-[#D1D5DB] px-2 py-0.5 rounded">
                   <Tag className="w-3 h-3 text-[#3B82F6]" />
-                  {item.product}
+                  {item.product || 'N/A'}
                 </span>
 
                 <span className="bg-[#141414] border border-[#262626] text-[#9CA3AF] px-2 py-0.5 rounded">
-                  {item.issue}
+                  {item.issue || 'N/A'}
                 </span>
 
                 <span className="flex items-center gap-1 bg-[#141414] border border-[#262626] text-[#9CA3AF] px-2 py-0.5 rounded">
                   <Building2 className="w-3 h-3 text-[#6B7280]" />
-                  {item.company}
+                  {item.company || 'N/A'}
                 </span>
 
-                {item.theme_name && (
+                {themeLabel && (
                   <span className="bg-[#1E1B4B] text-[#A5B4FC] px-2 py-0.5 rounded text-[10px] font-semibold">
-                    Topic: {item.theme_name}
+                    Topic: {themeLabel}
                   </span>
                 )}
               </div>
 
               {/* Snippet */}
               <div className="bg-black border border-[#1F1F1F] p-3 rounded text-xs text-[#D1D5DB] leading-relaxed italic">
-                &ldquo;{item.snippet}&rdquo;
+                &ldquo;{item.snippet || ''}&rdquo;
               </div>
 
               {/* Expand full narrative */}
               <div>
                 <button
-                  onClick={() => setExpandedId(isExpanded ? null : item.complaint_narrative_id)}
+                  type="button"
+                  onClick={() => setExpandedId(isExpanded ? null : narrativeId)}
                   className="flex items-center space-x-1 text-xs text-[#9CA3AF] hover:text-white transition-colors"
                 >
                   {isExpanded ? (
@@ -322,14 +353,14 @@ export const SemanticSearchPage: React.FC = () => {
                   ) : (
                     <>
                       <ChevronDown className="w-3.5 h-3.5" />
-                      <span>Show Full Unredacted Narrative ({item.full_narrative.length} chars)</span>
+                      <span>Show Full Unredacted Narrative ({fullText.length} chars)</span>
                     </>
                   )}
                 </button>
 
                 {isExpanded && (
                   <div className="mt-2.5 p-3.5 bg-black border border-[#262626] rounded text-xs text-[#E5E7EB] whitespace-pre-wrap leading-relaxed font-mono">
-                    {item.full_narrative}
+                    {fullText || 'No narrative content recorded.'}
                   </div>
                 )}
               </div>
@@ -362,5 +393,6 @@ export const SemanticSearchPage: React.FC = () => {
         )}
       </div>
     </div>
-  );
+  </ErrorBoundary>
+);
 };
