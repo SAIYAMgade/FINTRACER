@@ -16,6 +16,8 @@ from app.api import (
     investigations,
     reports,
     workbench,
+    semantic_search,
+    assistant,
 )
 import app.models  # ensure models are loaded
 
@@ -62,7 +64,9 @@ async def lifespan(app: FastAPI):
             if sample_narratives_path:
                 IngestionService.ingest_narratives(db, sample_narratives_path)
             NLPService.run_theme_extraction(db, n_clusters=5)
-            print("Auto-seeding and theme extraction completed!")
+            from app.services.semantic_search_service import SemanticSearchService
+            SemanticSearchService.index_all_narratives(db)
+            print("Auto-seeding, theme extraction, and semantic embeddings completed!")
     except Exception as e:
         print(f"Notice: Auto-seeding skipped ({e})")
     finally:
@@ -121,6 +125,8 @@ app.include_router(narratives.router, prefix=settings.API_PREFIX)
 app.include_router(investigations.router, prefix=settings.API_PREFIX)
 app.include_router(reports.router, prefix=settings.API_PREFIX)
 app.include_router(workbench.router, prefix=settings.API_PREFIX)
+app.include_router(semantic_search.router, prefix=settings.API_PREFIX)
+app.include_router(assistant.router, prefix=settings.API_PREFIX)
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):

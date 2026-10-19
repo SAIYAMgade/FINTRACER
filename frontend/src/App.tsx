@@ -10,6 +10,8 @@ import { NarrativeIntelligencePage } from './pages/NarrativeIntelligencePage';
 import { SqlWorkbenchPage } from './pages/SqlWorkbenchPage';
 import { ReportsPage } from './pages/ReportsPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { SemanticSearchPage } from './pages/SemanticSearchPage';
+import { InvestigationAssistantPage } from './pages/InvestigationAssistantPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -36,6 +38,8 @@ export function App() {
             <Route path="/quality" element={<DataQualityPage />} />
             <Route path="/investigations" element={<InvestigationStudioPage />} />
             <Route path="/narratives" element={<NarrativeIntelligencePage />} />
+            <Route path="/search" element={<SemanticSearchPage />} />
+            <Route path="/assistant" element={<InvestigationAssistantPage />} />
             <Route path="/workbench" element={<SqlWorkbenchPage />} />
             <Route path="/reports" element={<ReportsPage />} />
             <Route path="/settings" element={<SettingsPage />} />

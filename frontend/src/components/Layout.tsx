@@ -11,6 +11,8 @@ import {
   Settings,
   Database,
   ExternalLink,
+  Search,
+  Sparkles,
 } from 'lucide-react';
 
 const NAV_ITEMS = [
@@ -19,6 +21,8 @@ const NAV_ITEMS = [
   { name: 'Data Quality', path: '/quality', icon: ShieldCheck },
   { name: 'Investigation Studio', path: '/investigations', icon: SearchCode },
   { name: 'Narrative Intelligence', path: '/narratives', icon: MessageSquareText },
+  { name: 'Semantic Search', path: '/search', icon: Search },
+  { name: 'AI Assistant (RAG)', path: '/assistant', icon: Sparkles },
   { name: 'SQL Workbench', path: '/workbench', icon: TerminalSquare },
   { name: 'Reports', path: '/reports', icon: FileSpreadsheet },
   { name: 'Settings & Ingestion', path: '/settings', icon: Settings },

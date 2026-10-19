@@ -118,4 +118,106 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ sql, row_limit: rowLimit }),
     }),
+
+  // Semantic Search
+  searchSemantic: (payload: {
+    query: string;
+    top_k?: number;
+    product?: string;
+    issue?: string;
+    company?: string;
+    min_similarity?: number;
+  }) =>
+    request<{
+      query: string;
+      count: number;
+      top_k: number;
+      filters_applied: Record<string, any>;
+      duration_seconds: number;
+      results: Array<{
+        complaint_narrative_id: number;
+        complaint_source_id: string;
+        similarity_score: number;
+        product: string;
+        issue: string;
+        company: string;
+        theme_name?: string;
+        snippet: string;
+        full_narrative: string;
+      }>;
+    }>('/semantic-search/query', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  getSemanticStatus: () =>
+    request<{
+      total_indexed: number;
+      total_narratives: number;
+      dimension: number;
+      model: string;
+    }>('/semantic-search/status'),
+  reindexSemantic: () => request<any>('/semantic-search/index', { method: 'POST' }),
+
+  // Investigation Assistant (RAG)
+  askAssistant: (payload: {
+    question: string;
+    top_k?: number;
+    product_filter?: string;
+    company_filter?: string;
+  }) =>
+    request<{
+      question: string;
+      status: 'GROUNDED_ANSWER' | 'INSUFFICIENT_EVIDENCE' | 'REFUSED_SECURITY' | 'EMPTY_QUERY';
+      answer_markdown: string;
+      authoritative_sql_metrics?: {
+        product: string;
+        total_complaints: number;
+        timely_response_rate_pct: number;
+        top_issues: Array<{ issue: string; count: number }>;
+        top_companies: Array<{ company: string; count: number }>;
+      };
+      executed_sql_query?: string;
+      citations: Array<{
+        reference_tag: string;
+        complaint_source_id: string;
+        product: string;
+        issue: string;
+        company: string;
+        similarity_score: number;
+        snippet: string;
+      }>;
+      grounding_metadata: {
+        total_citations: number;
+        hallucination_prevention_mode: string;
+        retrieval_model: string;
+        metrics_source: string;
+        latency_seconds: number;
+      };
+    }>('/assistant/ask', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  getAssistantSampleQuestions: () => request<string[]>('/assistant/sample-questions'),
+  runAssistantEvaluation: () =>
+    request<{
+      evaluation_title: string;
+      total_test_cases: number;
+      passed_test_cases: number;
+      pass_rate_pct: number;
+      recall_at_k_pct: number;
+      mean_reciprocal_rank: number;
+      grounding_faithfulness_score: string;
+      benchmark_duration_seconds: number;
+      test_results: Array<{
+        case_id: string;
+        name: string;
+        question: string;
+        status: 'PASS' | 'FAIL';
+        actual_response_type: string;
+        citations_count: number;
+        first_citation?: string;
+        latency_ms: number;
+      }>;
+    }>('/assistant/evaluate'),
 };
+

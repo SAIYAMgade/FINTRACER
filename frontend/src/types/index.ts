@@ -205,3 +205,26 @@ export interface FullReportDetail extends ReportItem {
   methodology: string;
   limitations: string;
 }
+
+export interface SemanticSearchResultItem {
+  complaint_narrative_id: number;
+  complaint_source_id: string;
+  similarity_score: number;
+  product: string;
+  issue: string;
+  company: string;
+  theme_name?: string;
+  snippet: string;
+  full_narrative: string;
+}
+
+export interface AssistantCitationItem {
+  reference_tag: string;
+  complaint_source_id: string;
+  product: string;
+  issue: string;
+  company: string;
+  similarity_score: number;
+  snippet: string;
+}
+

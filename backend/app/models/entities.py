@@ -87,9 +87,22 @@ class ComplaintNarrative(Base):
     language_code = Column(String(10), default="en")
     preprocessing_version = Column(String(50), default="v1.0")
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
-
     theme_assignments = relationship("NarrativeThemeAssignment", back_populates="narrative", cascade="all, delete-orphan")
+    embedding = relationship("NarrativeEmbedding", back_populates="narrative", uselist=False, cascade="all, delete-orphan")
+
+
+class NarrativeEmbedding(Base):
+    __tablename__ = "narrative_embeddings"
+
+    id = Column(Integer, primary_key=True, index=True)
+    complaint_narrative_id = Column(Integer, ForeignKey("complaint_narratives.id"), unique=True, index=True, nullable=False)
+    complaint_source_id = Column(String(64), index=True, nullable=False)
+    embedding_model = Column(String(100), default="fintracer-semantic-tfidf-384")
+    dimension = Column(Integer, default=384)
+    vector_json = Column(JSON, nullable=False)  # L2-normalized float array for cosine search
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+    narrative = relationship("ComplaintNarrative", back_populates="embedding")
 
 
 class NarrativeTheme(Base):
