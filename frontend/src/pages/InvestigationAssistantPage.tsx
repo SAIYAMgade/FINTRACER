@@ -302,12 +302,14 @@ export const InvestigationAssistantPage: React.FC = () => {
                 </div>
               )}
 
-              {/* Synthesized Answer Body */}
-              <div className="bg-[#0D0D0D] border border-[#262626] p-6 rounded-lg text-sm text-[#F3F4F6] space-y-4 leading-relaxed font-sans">
-                <div className="whitespace-pre-wrap font-sans text-xs sm:text-sm">
-                  {response.answer_markdown || 'No analysis generated.'}
+              {/* Advisory message for Refused Security or Insufficient Evidence */}
+              {response.status !== 'GROUNDED_ANSWER' && (
+                <div className="bg-[#0D0D0D] border border-[#262626] p-6 rounded-lg text-sm text-[#F3F4F6] space-y-4 leading-relaxed font-sans">
+                  <div className="whitespace-pre-wrap font-sans text-xs sm:text-sm">
+                    {response.answer_markdown || 'No analysis generated.'}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Executed SQL Query Drawer */}
               {response.executed_sql_query && (
