@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { ErrorBoundary } from '../components/ErrorBoundary';
+import { ExecutiveSynthesis } from '../components/ExecutiveSynthesis';
 
 const SAMPLE_QUESTIONS = [
   'What issues are consumers experiencing with credit reporting?',
@@ -300,6 +301,11 @@ export const InvestigationAssistantPage: React.FC = () => {
                     </span>
                   </div>
                 </div>
+              )}
+
+              {/* Executive Investigation Synthesis Memo */}
+              {response.status === 'GROUNDED_ANSWER' && response.answer_markdown && (
+                <ExecutiveSynthesis markdown={response.answer_markdown} />
               )}
 
               {/* Advisory message for Refused Security or Insufficient Evidence */}
